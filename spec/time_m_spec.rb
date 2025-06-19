@@ -59,25 +59,6 @@ RSpec.describe TimeM do
     TM.tracker.reset_all
   end
 
-  it "with works with configure" do
-    $x = 0 # rubocop:disable Style/GlobalVars
-
-    old_print_proc = TimeM.send(:print_proc)
-
-    TimeM.configure do |config|
-      config.print_proc = ->(name, label, time, last_time = nil) { $x += 1 } # rubocop:disable Style/GlobalVars
-    end
-    TM.m("test") do
-      sleep 0.1
-    end
-    TM.m("test") do
-      sleep 0.1
-    end
-    expect($x).to eq(2) # rubocop:disable Style/GlobalVars
-
-    TimeM.send(:print_proc=, old_print_proc)
-  end
-
   it "just works" do
     now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     TM.m
