@@ -60,7 +60,7 @@ RSpec.describe TimeM do
   end
 
   it "just works" do
-    now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    Process.clock_gettime(Process::CLOCK_MONOTONIC)
     TM.m
     sleep 0.1
     TM.m
@@ -150,5 +150,13 @@ RSpec.describe TimeM do
 
   it "works with UserNotifier step by step" do
     UserNotifier.new("John").call_step_by_step
+  end
+
+  it "handle loops" do
+    3.times do
+      TM.m("test") do
+        sleep 0.5
+      end
+    end
   end
 end

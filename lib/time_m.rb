@@ -20,14 +20,13 @@ module TimeM
     now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     if block_given?
       yield.tap do |res|
-        duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - now
-        output(name, label, duration, res)
+        output(name, label, Process.clock_gettime(Process::CLOCK_MONOTONIC) - now)
       end
     else
       timer = tracker.timers[name]
       if timer.nil?
         tracker.init(name)
-        output(name, label, SKIP_FLAG)
+        output(name, label)
       else
         diff = now - timer[:last_time] if timer[:last_time]
         output(name, label, now - timer[:time], diff)
@@ -37,6 +36,41 @@ module TimeM
   end
 
   private_class_method
+
+  def self.output(name, label, time = SKIP_FLAG, last_time = nil)
+    display_name = label || name || caller[1..2].detect { |line| !line.include?("/lib/time_m") }
+    display_name = display_name.gsub(Rails.root.to_s + "/", "") if defined?(Rails)
+
+    if time == SKIP_FLAG
+      info NAME.on_light_yellow
+      info " #{display_name} ⏲", new_line: true
+      return
+    end
+
+    time = time.round(3)
+    last_time = last_time.round(3) if last_time
+    info NAME.on_light_yellow
+
+    if display_name
+      info " #{display_name} ∑"
+      warning sprintf("%0.3f", time)
+      info " seconds"
+
+      if last_time
+        info ", "
+        success "+#{sprintf("%0.3f", last_time)}"
+        info " seconds", new_line: true
+      else
+        info new_line: true
+      end
+    else
+      info " Elapsed time: #{sprintf("%0.3f", time)} seconds", new_line: true
+    end
+  end
+
+  def self.tracker
+    Thread.current[:time_m_timer] ||= Timer.new
+  end
 
   # colors: https://github.com/fazibear/colorize/blob/master/lib/colorize/class_methods.rb
 
@@ -56,48 +90,15 @@ module TimeM
     new_line ? puts(str) : print(str)
   end
 
-  def self.output(name, label, time, last_time = nil)
-    display_name = label || name || caller[1..2].detect { |line| !line.include?("/lib/time_m") }
-    display_name = display_name.gsub(Rails.root.to_s + "/", "") if defined?(Rails)
-
-    if time == SKIP_FLAG
-      info "#{NAME}".on_light_yellow
-      info " #{display_name} ⏲", new_line: true
-      return
+  module TimeExt
+    def m(name = nil, label = nil, &block)
+      TimeM.m(name, label, &block)
     end
 
-    time = time.round(3)
-    last_time = last_time.round(3) if last_time
-    if display_name
-      info "#{NAME}".on_light_yellow
-      info " #{display_name} ∑"
-      warning sprintf("%0.3f", time)
-      info " seconds"
-
-      if last_time
-        info ", "
-        success "+#{sprintf("%0.3f", last_time)}"
-        info " seconds", new_line: true
-      else
-        info new_line: true
-      end
-    else
-      info "#{NAME}".on_light_yellow
-      info " Elapsed time: #{sprintf("%0.3f", time)} seconds", new_line: true
-    end
-  end
-
-  def self.tracker
-    Thread.current[:time_m_timer] ||= Timer.new
+    alias_method :measure, :m
   end
 end
 
 TM = TimeM
 
-Time.define_singleton_method(:m) do |name = nil, label = nil, &block|
-  TimeM.m(name, label, &block)
-end
-
-Time.define_singleton_method(:measure) do |name = nil, label = nil, &block|
-  TimeM.m(name, label, &block)
-end
+Time.extend(TimeM::TimeExt)
