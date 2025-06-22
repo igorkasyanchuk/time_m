@@ -17,8 +17,10 @@ end
 To make is super easy to use, it extends `Time` class with `m` (or `measure`) method. There is also an advanced way to use it, see below.
 
 ```ruby
-Time.m("test") do
-  sleep 0.1
+def index
+  Time.m("report_time") do
+    @report = prepare_some_report
+  end
 end
 
 # or
@@ -73,7 +75,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 - config to specify print of caller
 - config to enable extension for Time class
 - config for custom output
-- instrumentation support?
+- Instrumentation support?
 
 ## Contributing
 
