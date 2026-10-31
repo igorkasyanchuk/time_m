@@ -1,5 +1,12 @@
 # Time.measure
 
+<a href="https://igorkasyanchuk.com/apps?ref=time_m">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://igorkasyanchuk.com/versions/v1/banner-dark.svg">
+    <img src="https://igorkasyanchuk.com/versions/v1/banner-light.svg" width="720" alt="More tools from the author: Laki, DiffNotes and more. See all projects at igorkasyanchuk.com/apps">
+  </picture>
+</a>
+
 The easiest way to measure execution time of your code. No more `puts` or `logger.info` with `Time.now - time`.
 
 Start measuring your code, and if you value your time, use this gem :)
